@@ -4,6 +4,12 @@ import telebot
 import config
 from bs4 import BeautifulSoup as bs
 
+START_COMMAND = 'Добро пожаловать в Wooord Hunt! Для нового слова введите любую цифру!'
+
+HELP_COMMAND = """
+Привет! Я бот для работы с словарями Wooord Hunt.
+Чтобы начать работу, напишите /start.
+Для помощи, напишите /help."""
 
 URL = 'https://wooordhunt.ru/dic/list/en_ru/ab'
 
@@ -27,7 +33,14 @@ def handle_start(message):
     user_markup.row('Награды')
     user_markup.row('Помощь')
     user_markup.row('Записаться на урок')
-    bot.send_message(message.chat.id, 'Привет, для нового слова введите любую цифру!', reply_markup=user_markup)
+    bot.send_message(message.chat.id, START_COMMAND, reply_markup=user_markup)
+    bot.delete_message(message.chat.id, message.message_id)
+
+
+@bot.message_handler(commands=['help'])
+def handle_help(message):
+    bot.reply_to(message, HELP_COMMAND)
+    bot.delete_message(message.chat.id, message.message_id)
 
 
 @bot.message_handler(content_types=['text'])
