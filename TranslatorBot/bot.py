@@ -1,28 +1,21 @@
-import requests
 import random
 import telebot
 import config
-from bs4 import BeautifulSoup as bs
+from openpyxl import load_workbook
 
-START_COMMAND = 'Добро пожаловать в Wooord Hunt! Для нового слова введите любую цифру!'
+START_COMMAND = 'Добро пожаловать в Wooord Hunt!'
 
 HELP_COMMAND = """
 Привет! Я бот для работы с словарями Wooord Hunt.
 Чтобы начать работу, напишите /start.
 Для помощи, напишите /help."""
 
-URL = 'https://wooordhunt.ru/dic/list/en_ru/ab'
+book = load_workbook(filename="D:/words.xlsx")
+sheet = book['Лист1']
+SHEET_ROWS_COUNT = sheet.max_row
+row_number = None
+question_word = None
 
-
-def parser(url):
-    r = requests.get(url)
-    soup = bs(r.text, 'html.parser')
-    dictionary = soup.find_all('p')
-    return [c.text for c in dictionary]
-
-
-list_of_words = parser(URL)
-random.shuffle(list_of_words)
 bot = telebot.TeleBot(config.TOKEN)
 
 
@@ -44,12 +37,19 @@ def handle_help(message):
 
 
 @bot.message_handler(content_types=['text'])
-def words(message):
-    if message.text.lower() in '123456789':
-        bot.send_message(message.chat.id, list_of_words[0])
-        del list_of_words[0]
-    else:
-        bot.send_message(message.chat.id, 'Цифру!')
+def echo(message):
+    global row_number, question_word
+    row_number = str(random.randrange(1, SHEET_ROWS_COUNT))
+    question_word = sheet['A' + row_number].value
+    if message.text.lower() == 'изучать слова':
+        bot.send_message(message.chat.id, "Поехали!")
+    answer_markup = telebot.types.ReplyKeyboardMarkup(True, False)
+    answer_markup.row(sheet['A' + str(random.randrange(1, SHEET_ROWS_COUNT))].value,
+                      sheet['A' + str(random.randrange(1, SHEET_ROWS_COUNT))].value)
+    answer_markup.row(sheet['A' + str(random.randrange(1, SHEET_ROWS_COUNT))].value,
+                      sheet['A' + str(random.randrange(1, SHEET_ROWS_COUNT))].value)
+    bot.send_message(message.chat.id, question_word.title(), reply_markup=answer_markup)
+    del question_word
 
 
 bot.polling()
