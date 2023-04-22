@@ -15,6 +15,7 @@ sheet = book['Лист1']
 SHEET_ROWS_COUNT = sheet.max_row
 row_number = None
 question_word = None
+answer_word = None
 
 bot = telebot.TeleBot(config.TOKEN)
 
@@ -22,10 +23,10 @@ bot = telebot.TeleBot(config.TOKEN)
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     user_markup = telebot.types.ReplyKeyboardMarkup(True, True)
-    user_markup.row('Изучать слова', 'Мои ошибки')
-    user_markup.row('Награды')
-    user_markup.row('Помощь')
-    user_markup.row('Записаться на урок')
+    user_markup.row('Изучать слова 📖', 'Мои ошибки ⚠️')
+    user_markup.row('Награды 🥇')
+    user_markup.row('Помощь 🆘')
+    user_markup.row('Записаться на урок 💎')
     bot.send_message(message.chat.id, START_COMMAND, reply_markup=user_markup)
     bot.delete_message(message.chat.id, message.message_id)
 
@@ -38,17 +39,40 @@ def handle_help(message):
 
 @bot.message_handler(content_types=['text'])
 def echo(message):
-    global row_number, question_word
-    row_number = str(random.randrange(1, SHEET_ROWS_COUNT))
-    question_word = sheet['A' + row_number].value
-    if message.text.lower() == 'изучать слова':
+    global row_number, question_word, answer_word
+    if message.text.lower() == 'изучать слова 📖':
         bot.send_message(message.chat.id, "Поехали!")
-    answer_markup = telebot.types.ReplyKeyboardMarkup(True, False)
-    answer_markup.row(sheet['A' + str(random.randrange(1, SHEET_ROWS_COUNT))].value,
-                      sheet['A' + str(random.randrange(1, SHEET_ROWS_COUNT))].value)
-    answer_markup.row(sheet['A' + str(random.randrange(1, SHEET_ROWS_COUNT))].value,
-                      sheet['A' + str(random.randrange(1, SHEET_ROWS_COUNT))].value)
-    bot.send_message(message.chat.id, question_word.title(), reply_markup=answer_markup)
+        row_number = str(random.randrange(1, SHEET_ROWS_COUNT))
+        question_word = sheet['A' + row_number].value
+        answer_word = sheet['B' + row_number].value
+        answer_markup = telebot.types.ReplyKeyboardMarkup(True, False)
+        answer_markup.row(sheet['B' + str(random.randrange(1, SHEET_ROWS_COUNT))].value,
+                          sheet['B' + str(random.randrange(1, SHEET_ROWS_COUNT))].value)
+        answer_markup.row(sheet['B' + str(random.randrange(1, SHEET_ROWS_COUNT))].value,
+                          answer_word)
+        bot.send_message(message.chat.id, question_word.title(), reply_markup=answer_markup)
+    elif message.text.lower() == answer_word.lower():
+        bot.send_message(message.chat.id, "Молодец!")
+        row_number = str(random.randrange(1, SHEET_ROWS_COUNT))
+        question_word = sheet['A' + row_number].value
+        answer_word = sheet['B' + row_number].value
+        answer_markup = telebot.types.ReplyKeyboardMarkup(True, False)
+        answer_markup.row(sheet['B' + str(random.randrange(1, SHEET_ROWS_COUNT))].value,
+                          sheet['B' + str(random.randrange(1, SHEET_ROWS_COUNT))].value)
+        answer_markup.row(sheet['B' + str(random.randrange(1, SHEET_ROWS_COUNT))].value,
+                          answer_word)
+        bot.send_message(message.chat.id, question_word.title(), reply_markup=answer_markup)
+    else:
+        bot.send_message(message.chat.id, "Не молодец!")
+        row_number = str(random.randrange(1, SHEET_ROWS_COUNT))
+        question_word = sheet['A' + row_number].value
+        answer_word = sheet['B' + row_number].value
+        answer_markup = telebot.types.ReplyKeyboardMarkup(True, False)
+        answer_markup.row(sheet['B' + str(random.randrange(1, SHEET_ROWS_COUNT))].value,
+                          sheet['B' + str(random.randrange(1, SHEET_ROWS_COUNT))].value)
+        answer_markup.row(sheet['B' + str(random.randrange(1, SHEET_ROWS_COUNT))].value,
+                          answer_word)
+        bot.send_message(message.chat.id, question_word.title(), reply_markup=answer_markup)
     del question_word
 
 
